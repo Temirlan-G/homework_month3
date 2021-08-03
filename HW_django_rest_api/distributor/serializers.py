@@ -2,18 +2,12 @@ from rest_framework import serializers
 from .models import Category, Tag, Product
 
 
-class TagsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = 'id name'.split()
-
-
 class ProductSerializer(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = 'title description price tags'.split()
+        fields = 'title description price category tags'.split()
 
     def get_tags(self, brand):
         l = []
