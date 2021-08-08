@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import ProductSerializer, CategorySerializer
+from .serializers import ProductSerializer, CategorySerializer, ProductCreateSerializer, ProductUpdateSerializer
 from .models import Product, Category, Tag
 
 
@@ -16,6 +16,14 @@ def products_list_view(request):
         data = ProductSerializer(products, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
+        serializer = ProductCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                data={
+                    'message': 'error',
+                    'errors': serializer.errors
+                }
+            )
         product = Product.objects.create(
             title=request.data['title'],
             description=request.data['description'],
@@ -36,9 +44,15 @@ def products_item_view(request, id):
     except Product.DoesNotExist:
         return Response(data={'message': 'Product does not exist!'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'PUT':
-        Product.objects.update(
-            category_id=request.data['category_id']
-        )
+        serializer = ProductUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                data={
+                    'message': 'error',
+                    'errors': serializer.errors
+                }
+            )
+        products.category_id = request.data['category_id']
         products.title = request.data['title']
         products.description = request.data['description']
         products.price = request.data['price']

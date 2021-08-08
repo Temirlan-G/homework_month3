@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
 from .models import Category, Tag, Product
 
 
@@ -22,3 +24,44 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = 'id name category_pr'.split()
+
+
+class ProductCreateSerializer(serializers.Serializer):
+    title = serializers.CharField(min_length=2, max_length=100)
+    description = serializers.CharField(max_length=100)
+    price = serializers.IntegerField()
+    category_id = serializers.IntegerField()
+    tags = serializers.ListField(required=False, child=serializers.IntegerField())
+
+    def validate_title(self, title):
+        products = Product.objects.filter(title=title)
+        if products.count() > 0:
+            raise ValidationError('Такой товар уже существует!')
+
+    def validate_tags(self, tags):
+        if Tag.objects.filter(id__in=tags).count() != len(tags):
+            raise ValidationError('Tags error')
+
+    def validate(self, attrs):
+        id = attrs['category_id']
+        if Category.objects.filter(id=id) is not None:
+            raise ValidationError('Такой категории не существует')
+        return attrs
+
+
+class ProductUpdateSerializer(serializers.Serializer):
+    title = serializers.CharField(min_length=2, max_length=100)
+    description = serializers.CharField(max_length=100)
+    price = serializers.IntegerField()
+    category_id = serializers.IntegerField()
+    tags = serializers.ListField(required=False, child=serializers.IntegerField())
+
+    def validate_tags(self, tags):
+        if Tag.objects.filter(id__in=tags).count() != len(tags):
+            raise ValidationError('Tags error')
+
+    def validate(self, attrs):
+        id = attrs['category_id']
+        if Category.objects.filter(id=id) is not None:
+            raise ValidationError('Такой категории не существует')
+        return attrs
