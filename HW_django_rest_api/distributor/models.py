@@ -20,8 +20,7 @@ class Product(models.Model):
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
     price = models.IntegerField()
-    # category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='category_pr', null=True)
-    category = models.ManyToManyField(Category)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='category_pr', null=True)
     tags = models.ManyToManyField(Tag)
 
     def __str__(self):
