@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import ProductSerializer, CategorySerializer, ProductCreateSerializer, ProductUpdateSerializer
+from .serializers import ProductSerializer, CategorySerializer, ProductCreateSerializer, ProductUpdateSerializer, \
+    LoginValidateSerializer
 from .models import Product, Category, Tag
 
 
@@ -76,3 +78,30 @@ def category_item_view(request, id):
     category = Category.objects.get(id=id)
     data = CategorySerializer(category).data
     return Response(data=data)
+
+from django.contrib import auth
+
+@api_view(['POST'])
+def login(request):
+    if request.method == 'POST':
+        serializer = LoginValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                data={
+                    'message': 'error',
+                    'errors':serializer.errors
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        user = auth.authenticate(**serializer.validated_data)
+        if user:
+            try:
+                token = Token.objects.get(user=user)
+            except Token.DoesNotExist:
+                token = Token.objects.create(user=user)
+            return Response(data={'key': token.key})
+        else:
+            return Response(
+                data={'message': 'Wrong login or password!'},
+                status=status.HTTP_404_NOT_FOUND
+            )

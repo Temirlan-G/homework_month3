@@ -65,3 +65,8 @@ class ProductUpdateSerializer(serializers.Serializer):
         if Category.objects.filter(id=id) is not None:
             raise ValidationError('Такой категории не существует')
         return attrs
+
+
+class LoginValidateSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=100)
+    password = serializers.CharField(max_length=100)
